@@ -49,16 +49,16 @@ private:
 namespace translate
 {
   
-  template <>
-  struct to_object<std::map<std::string,std::string>>
+  template <typename K, typename V>
+  struct to_object<const std::map<K,V> &>
   {
-    static core::T_sp convert(std::map<std::string,std::string> arg)
+    static core::T_sp convert(const std::map<K,V> &arg)
     {
       auto equal = core::lisp_intern("EQUAL","COMMON-LISP");
       auto table = core::HashTable_O::create(equal);
       for (const auto& [key, value] : arg)
-        table->setf_gethash(core::SimpleCharacterString_O::make(key),
-                            core::SimpleCharacterString_O::make(value));
+        table->setf_gethash(to_object<K>::convert(key),
+                            to_object<V>::convert(value));
       return table;
       
     }
@@ -78,17 +78,17 @@ namespace translate
   //   }
   // };
 
-  template <>
-  struct from_object<std::map<std::string,std::string>>
+  template <typename K, typename V>
+  struct from_object<std::map<K,V>>
   {
-    typedef std::map<std::string,std::string> DeclareType;
+    typedef std::map<K,V> DeclareType;
     DeclareType _v;                                    
     from_object(core::T_sp obj)
     {
       if (core::cl__hash_table_p(obj)) {
-        this->_v = std::map<std::string,std::string>();
+        this->_v = std::map<K,V>();
         gc::As<core::HashTable_sp>(obj)->maphash([this](core::T_sp k, core::T_sp v) {
-          this->_v[core::string_get_std_string(k)] = core::string_get_std_string(v);
+          this->_v[from_object<K>(k)._v] = from_object<V>(v)._v;
         });
       } else {
         TYPE_ERROR(obj,cl::_sym_HashTable_O);
@@ -124,19 +124,24 @@ void libexpr_startup() {
     // .def("eval",&nix::EvalState::eval)
     // .def("print-stats",&nix::EvalState::printStats);
 
-  pkg.def("init-gc",&nix::initGC);
+  class_<nix::Store>(s, "store");
+  class_<nix::ref<nix::Store>>(s, "store-ref");
+
+  // pkg.def("init-gc",&nix::initGC);
   
-  pkg.def("open-store",&nix::openStore);
+  // pkg.def("open-store",&nix::openStore);
 
   pkg.def("foo",&foo);
   pkg.def("foo2",&foo2);
   // pkg.def("bar",&bar);
   pkg.def("baz",&baz);
   
-  pkg.def("get-default-substituters",&nix::getDefaultSubstituters);
-
-  class_<nix::Store>(s, "store");
-  class_<nix::ref<nix::Store>>(s, "store-ref");
+  pkg.def(
+    "open-store",
+    +[](std::string url) {
+      nix::ref<nix::Store> res = nix::openStore(url);
+      return res;
+    });
 
   // pkg.def("add-to-search-path",&nix::EvalState::addToSearchPath);
   // pkg.def("get-search-path",&nix::EvalState::getSearchPath);
