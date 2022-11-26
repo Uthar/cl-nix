@@ -124,23 +124,46 @@ void libexpr_startup() {
     // .def("eval",&nix::EvalState::eval)
     // .def("print-stats",&nix::EvalState::printStats);
 
-  class_<nix::Store>(s, "store");
-  class_<nix::ref<nix::Store>>(s, "store-ref");
+  // class_<nix::Store>(s, "store");
+  
+  
 
-  // pkg.def("init-gc",&nix::initGC);
   
   // pkg.def("open-store",&nix::openStore);
 
-  pkg.def("foo",&foo);
-  pkg.def("foo2",&foo2);
+  // pkg.def("foo",&foo);
+  // pkg.def("foo2",&foo2);
   // pkg.def("bar",&bar);
-  pkg.def("baz",&baz);
+  // pkg.def("baz",&baz);
+  
+  class_<nix::ref<nix::Store>>(s, "store-ref");
   
   pkg.def(
     "open-store",
     +[](std::string url) {
       nix::ref<nix::Store> res = nix::openStore(url);
       return res;
+    });
+
+  class_<nix::Value>(s, "value")
+    .def("lambda-p",&nix::Value::isLambda)
+    .def("primop-p",&nix::Value::isPrimOp)
+    .def("app-p",&nix::Value::isApp)
+    .def("trivial-p",&nix::Value::isTrivial);
+  
+  // class_<nix::Expr>(s, "expr");
+
+  pkg.def("init-gc",&nix::initGC);
+
+  pkg.def(
+    "eval-expr",
+    +[](std::string e, nix::ref<nix::Store> store) {
+      auto searchPath = std::list<std::string>();
+      auto state = nix::EvalState(searchPath, store);
+      auto expr = state.parseExprFromString(e, "/home/kasper/");
+      nix::Value value;
+      state.eval(expr, value);
+      return value;
     });
 
   // pkg.def("add-to-search-path",&nix::EvalState::addToSearchPath);
