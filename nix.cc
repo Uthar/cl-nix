@@ -21,9 +21,9 @@ void cl_nix_startup() {
   // Rough list of headers, going from the bottom up:
 
   //// libexpr
-  // [x] ref.hh
-  // [x] types.hh
-  // [x] chunked-vector.hh
+  // [ ] ref.hh
+  // [ ] types.hh
+  // [ ] chunked-vector.hh
   // [ ] symbol-table.hh
   // [ ] value.hh
   // [ ] ansicolor.hh
