@@ -2,7 +2,7 @@
   description = "Nix C++ bindings for Common Lisp";
 
   inputs.flake-utils.url = "github:numtide/flake-utils";
-  inputs.devpkgs.url = "/home/kasper/dev";
+  inputs.devpkgs.url = "github:uthar/dev?ref=clasp-nix-bindings";
 
   outputs = { self, nixpkgs, flake-utils, devpkgs }:
     flake-utils.lib.eachDefaultSystem (system:
