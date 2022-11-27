@@ -9,6 +9,16 @@
 #include <nix/store-api.hh>
 #include <nix/derivations.hh>
 
+map<std::string, std::string> foo () {
+  auto map = std::map<std::string, std::string>();
+  map["foo"] = "123";
+  return map;
+}
+
+std::string bar (map<std::string, std::string> map) {
+  return map["foo"];
+}
+
 namespace translate {
   // string_view
   template <>
@@ -28,6 +38,33 @@ namespace translate {
     DeclareType _v;
     from_object( T_P o ) {
       _v = std::move(std::string_view(string_get_std_string(o)));
+    };
+  };
+  // map
+  template <typename K, typename V>
+    struct to_object< std::map<K,V>, translate::dont_adopt_pointer >
+  {
+    typedef std::map<K,V> & DeclareType;
+    static core::T_sp convert( DeclareType & v )
+    {
+      auto equal = core::lisp_intern("EQUAL","COMMON-LISP");
+      core::HashTable_sp oi = core::HashTable_O::create(equal);
+      // for (auto & [key, value] : v)
+        // oi->hash_table_setf_gethash(to_object<K>::convert(key),
+                                    // to_object<V>::convert(value));
+      return ( oi );
+    }
+  };
+  template <typename K, typename V>
+    struct from_object<std::map<K,V>, std::true_type >
+  {
+    typedef std::map<K,V> DeclareType;
+    DeclareType _v;
+    from_object( T_P o ) {
+      _v = std::map<K,V>();
+      gc::As<core::HashTable_sp>(o)->maphash([=](core::T_sp k, core::T_sp v) {
+        _v[from_object<K>(k)._v] = from_object<V>(v)._v;
+      });
     };
   };
 }
@@ -225,6 +262,9 @@ void cl_nix_startup() {
   // [ ] verify.cc
   // [ ] why-depends.cc
 
+  pkg.def("foo",&foo);
+  pkg.def("bar",&bar);
+
   //// Derivations
 
 
@@ -299,6 +339,7 @@ void cl_nix_startup() {
   // pkg.def(
   //   "make-derivation",
   //   +[](nix::DerivationOutputs outputs,
+  //       nix::DerivationInputs inputDrvs,
   //       nix::StorePathSet inputSrcs,
   //       std::string platform,
   //       nix::Path builder,
