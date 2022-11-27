@@ -9,6 +9,17 @@
 #include <nix/store-api.hh>
 
 namespace translate {
+  // string_view
+  template <>
+    struct to_object< std::string_view, translate::dont_adopt_pointer >
+  {
+    typedef std::string_view & DeclareType;
+    static core::T_sp convert( DeclareType & v )
+    {
+      core::T_sp oi = core::str_create( std::string(v) );
+      return ( oi );
+    }
+  };
   template <>
     struct from_object<std::string_view, std::true_type >
   {
