@@ -7,6 +7,7 @@
 #include <nix/eval.hh>
 #include <nix/value.hh>
 #include <nix/store-api.hh>
+#include <nix/derivations.hh>
 
 namespace translate {
   // string_view
@@ -311,6 +312,7 @@ void cl_nix_startup() {
   //// Store
 
   class_<nix::ref<nix::Store>>(s, "store-ref");
+  class_<nix::Derivation>(s, "derivation");
 
   pkg.def(
     "open-store",
@@ -367,7 +369,12 @@ void cl_nix_startup() {
       return store->getProtocol();
     });
 
-  
+  pkg.def(
+    "parse-derivation",
+    +[](nix::ref<nix::Store> store, std::string s, std::string name) {
+      return nix::parseDerivation(*store, std::move(s), name);
+    });  
+
   /// Eval
   
   pkg.def("init-gc",&nix::initGC);
