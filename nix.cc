@@ -334,8 +334,8 @@ void cl_nix_startup() {
   pkg.def(
     "add-text-to-store",
     +[](nix::ref<nix::Store> store,
-        std::string_view name,
-        std::string_view s
+        std::string name,
+        std::string s
         // const nix::StorePathSet & references
         ) {
       return store->addTextToStore(name, s, {});
