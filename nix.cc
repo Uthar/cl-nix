@@ -15,7 +15,7 @@ namespace translate {
     typedef std::string_view DeclareType;
     DeclareType _v;
     from_object( T_P o ) {
-      _v = std::string_view(string_get_std_string(o));
+      _v = std::move(std::string_view(string_get_std_string(o)));
     };
   };
 }
@@ -245,7 +245,7 @@ void cl_nix_startup() {
   class_<nix::StorePath>(s, "store-path")
     .def("to-string",&nix::StorePath::to_string)
     .def("name",&nix::StorePath::name)
-    .def("hashPart",&nix::StorePath::hashPart)
+    .def("hash-part",&nix::StorePath::hashPart)
     .def("derivation-p",&nix::StorePath::isDerivation);
 
   class_<nix::Hash>(s, "hash")
@@ -264,7 +264,7 @@ void cl_nix_startup() {
 
   pkg.def(
     "make-store-path",
-    +[](std::string_view baseName) {
+    +[](std::string baseName) {
       return nix::StorePath(baseName);
     });
 
