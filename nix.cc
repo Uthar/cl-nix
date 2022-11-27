@@ -421,6 +421,23 @@ void cl_nix_startup() {
     +[](nix::Derivation drv, nix::ref<nix::Store> store, bool maskOutputs) {
       return drv.unparse(*store, maskOutputs);
     });
+
+  pkg.def(
+    "make-derivation",
+    +[](std::string name, std::string platform, nix::Path builder) {
+      nix::Derivation drv;
+      drv.name = name;
+      drv.platform = platform;
+      drv.builder = builder;
+      return drv;
+    });
+
+  pkg.def(
+    "write-derivation",
+    +[](nix::Derivation drv, nix::ref<nix::Store> store) {
+      return nix::writeDerivation(*store, drv);
+    });
+
      
   /// Eval
   
