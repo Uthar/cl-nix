@@ -136,7 +136,41 @@ void libexpr_startup() {
   // pkg.def("bar",&bar);
   // pkg.def("baz",&baz);
   
+  // class_<nix::Store>(s, "store")
+    // .def("init",&nix::Store::init)
+    // .def("get-uri",&nix::Store::getUri)
+    // .def("parse-store-path",&nix::Store::parseStorePath)
+    // .def("print-store-path",&nix::Store::printStorePath)
+    // .def("in-store-p",&nix::Store::isInStore)
+    // .def("store-path-p",&nix::Store::isStorePath)
+    // .def("follow-links-to-store",&nix::Store::followLinksToStore)
+    // .def("substitute-paths",&nix::Store::substitePaths)
+    // .def("connect",&nix::Store::connect)
+    // .def("get-protocol",&nix::Store::getProtocol)
+    // TODO(kasper): queryPathInfo
+    // TODO(kasper): addToStore
+    // TODO(kasper): addTextToStore
+    // TODO(kasper): narFromPath
+    // TODO(kasper): buildPaths
+    // TODO(kasper): buildPathsWithResults
+    // TODO(kasper): buildDerivation
+    // TODO(kasper): pathInfoToJSON
+    // TODO(kasper): getClosureSize
+    // TODO(kasper): computeFSClosure
+    // TODO(kasper): queryMissing
+    // TODO(kasper): exportPaths
+    // TODO(kasper): importPaths
+    // TODO(kasper): getStats
+    ;
+  
   class_<nix::ref<nix::Store>>(s, "store-ref");
+
+  // pkg.def(
+  //   "store-ref-store",
+  //   +[](nix::ref<nix::Store> ref) {
+  //     nix::Store store = *ref;
+  //     return store;
+  //   });
   
   pkg.def(
     "open-store",
@@ -144,6 +178,10 @@ void libexpr_startup() {
       nix::ref<nix::Store> res = nix::openStore(url);
       return res;
     });
+
+// TODO(kasper): copyStorePath
+// TODO(kasper): copyPaths
+// TODO(kasper): copyClosure
 
   class_<nix::Value>(s, "value")
     .def("lambda-p",&nix::Value::isLambda)
