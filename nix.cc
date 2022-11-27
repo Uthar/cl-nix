@@ -21,133 +21,176 @@ void cl_nix_startup() {
   // Rough list of headers, going from the bottom up:
 
   //// libexpr
-  // ref.hh
-  // types.hh
-  // chunked-vector.hh
-  // symbol-table.hh
-  // value.hh
-  // ansicolor.hh
-  // fmt.hh
-  // suggestions.hh
-  // error.hh
-  // nixexpr.hh
-  // config.hh
-  // comparator.hh
-  // experimental-features.hh
-  // eval.hh
-  // attr-path.hh
-  // attr-set.hh
-  // sync.hh
-  // util.hh
-  // serialise.hh
-  // hash.hh
-  // eval-cache.hh
-  // eval-inline.hh
-  // function-trace.hh
-  // content-address.hh
-  // path.hh
-  // get-drvs.hh
-  // json-to-value.hh
-  // primops.hh
-  // value-to-json.hh
-  // value-to-xml.hh
+  // [x] ref.hh
+  // [x] types.hh
+  // [x] chunked-vector.hh
+  // [ ] symbol-table.hh
+  // [ ] value.hh
+  // [ ] ansicolor.hh
+  // [ ] fmt.hh
+  // [ ] suggestions.hh
+  // [ ] error.hh
+  // [ ] nixexpr.hh
+  // [ ] config.hh
+  // [ ] comparator.hh
+  // [ ] experimental-features.hh
+  // [ ] eval.hh
+  // [ ] attr-path.hh
+  // [ ] attr-set.hh
+  // [ ] sync.hh
+  // [ ] util.hh
+  // [ ] serialise.hh
+  // [ ] hash.hh
+  // [ ] eval-cache.hh
+  // [ ] eval-inline.hh
+  // [ ] function-trace.hh
+  // [ ] content-address.hh
+  // [ ] path.hh
+  // [ ] get-drvs.hh
+  // [ ] json-to-value.hh
+  // [ ] primops.hh
+  // [ ] value-to-json.hh
+  // [ ] value-to-xml.hh
 
   //// libstore
-  // crypto.hh
-  // path-info.hh
-  // nar-info.hh
-  // realisation.hh
-  // derived-path.hh
-  // lru-cache.hh
-  // config.hh
-  // globals.hh
-  // repair-flag.hh
-  // store-api.hh
-  // log-store.hh
-  // pool.hh
-  // binary-cache-store.hh
-  // build-result.hh
-  // derivations.hh
-  // builtins.hh
-  // daemon.hh
-  // filetransfer.hh
-  // fs-accessor.hh
-  // gc-store.hh
-  // local-fs-store.hh
-  // pathlocks.hh
-  // local-store.hh
-  // lock.hh
-  // machines.hh
-  // make-content-addressed.hh
-  // names.hh
-  // nar-accessor.hh
-  // nar-info-disk-cache.hh
-  // parsed-derivations.hh
-  // path-with-outputs.hh
-  // profiles.hh
-  // references.hh
-  // remote-fs-accessor.hh
-  // remote-store.hh
-  // s3.hh
-  // binary-cache-store.hh
-  // s3-binary-cache-store.hh
-  // serve-protocol.hh
-  // sqlite.hh
-  // ssh.hh
-  // store-cast.hh
-  // uds-remote-store.hh
-  // worker-protocol.hh
-  // goal.hh
-  // derivation-goal.hh
-  // drv-output-substitution-goal.hh
-  // hook-instance.hh
-  // local-derivation-goal.hh
-  // substitution-goal.hh
-  // worker.hh
+  // [ ] crypto.hh
+  // [ ] path-info.hh
+  // [ ] nar-info.hh
+  // [ ] realisation.hh
+  // [ ] derived-path.hh
+  // [ ] lru-cache.hh
+  // [ ] config.hh
+  // [ ] globals.hh
+  // [ ] repair-flag.hh
+  // [ ] store-api.hh
+  // [ ] log-store.hh
+  // [ ] pool.hh
+  // [ ] binary-cache-store.hh
+  // [ ] build-result.hh
+  // [ ] derivations.hh
+  // [ ] builtins.hh
+  // [ ] daemon.hh
+  // [ ] filetransfer.hh
+  // [ ] fs-accessor.hh
+  // [ ] gc-store.hh
+  // [ ] local-fs-store.hh
+  // [ ] pathlocks.hh
+  // [ ] local-store.hh
+  // [ ] lock.hh
+  // [ ] machines.hh
+  // [ ] make-content-addressed.hh
+  // [ ] names.hh
+  // [ ] nar-accessor.hh
+  // [ ] nar-info-disk-cache.hh
+  // [ ] parsed-derivations.hh
+  // [ ] path-with-outputs.hh
+  // [ ] profiles.hh
+  // [ ] references.hh
+  // [ ] remote-fs-accessor.hh
+  // [ ] remote-store.hh
+  // [ ] s3.hh
+  // [ ] binary-cache-store.hh
+  // [ ] s3-binary-cache-store.hh
+  // [ ] serve-protocol.hh
+  // [ ] sqlite.hh
+  // [ ] ssh.hh
+  // [ ] store-cast.hh
+  // [ ] uds-remote-store.hh
+  // [ ] worker-protocol.hh
+  // [ ] goal.hh
+  // [ ] derivation-goal.hh
+  // [ ] drv-output-substitution-goal.hh
+  // [ ] hook-instance.hh
+  // [ ] local-derivation-goal.hh
+  // [ ] substitution-goal.hh
+  // [ ] worker.hh
 
   //// libmain
-  // args.hh
-  // common-args.hh
-  // loggers.hh
-  // progress-bar.hh
-  // shared.hh
+  // [ ] args.hh
+  // [ ] common-args.hh
+  // [ ] loggers.hh
+  // [ ] progress-bar.hh
+  // [ ] shared.hh
 
   //// libutil
-  // archive.hh
-  // compression.hh
-  // compute-levels.hh
-  // json.hh
-  // json-utils.hh
-  // logging.hh
-  // monitor-fd.hh
-  // suggestions.hh
-  // tarfile.hh
-  // thread-pool.hh
-  // topo-sort.hh
-  // url.hh
-  // url-parts.hh
-  // xml-writer.hh
+  // [ ] archive.hh
+  // [ ] compression.hh
+  // [ ] compute-levels.hh
+  // [ ] json.hh
+  // [ ] json-utils.hh
+  // [ ] logging.hh
+  // [ ] monitor-fd.hh
+  // [ ] suggestions.hh
+  // [ ] tarfile.hh
+  // [ ] thread-pool.hh
+  // [ ] topo-sort.hh
+  // [ ] url.hh
+  // [ ] url-parts.hh
+  // [ ] xml-writer.hh
 
   //// flakes
-  // flakeref.hh
-  // flake.hh
-  // lockfile.hh
+  // [ ] flakeref.hh
+  // [ ] flake.hh
+  // [ ] lockfile.hh
 
   //// libcmd
-  // installables.hh
-  // common-eval-args.hh
-  // legacy.hh
-  // markdown.hh
+  // [ ] installables.hh
+  // [ ] common-eval-args.hh
+  // [ ] legacy.hh
+  // [ ] markdown.hh
 
   //// libfetchers
-  // attrs.hh
-  // fetchers.hh
-  // cache.hh
-  // fetch-settings.hh
-  // registry.hh
-  
-  
+  // [ ] attrs.hh
+  // [ ] fetchers.hh
+  // [ ] cache.hh
+  // [ ] fetch-settings.hh
+  // [ ] registry.hh
 
+  //// Commands
+  // [ ] add-to-store.cc
+  // [ ] app.cc
+  // [ ] build.cc
+  // [ ] bundle.cc
+  // [ ] cat.cc
+  // [ ] copy.cc
+  // [ ] daemon.cc
+  // [ ] describe-stores.cc
+  // [ ] develop.cc
+  // [ ] diff-closures.cc
+  // [ ] doctor.cc
+  // [ ] dump-path.cc
+  // [ ] edit.cc
+  // [ ] eval.cc
+  // [ ] flake.cc
+  // [ ] fmt.cc
+  // [ ] hash.cc
+  // [ ] log.cc
+  // [ ] ls.cc
+  // [ ] main.cc
+  // [ ] make-content-addressed.cc
+  // [ ] nar.cc
+  // [ ] optimise-store.cc
+  // [ ] path-from-hash-part.cc
+  // [ ] path-info.cc
+  // [ ] ping-store.cc
+  // [ ] prefetch.cc
+  // [ ] profile.cc
+  // [ ] realisation.cc
+  // [ ] registry.cc
+  // [ ] run.cc
+  // [ ] search.cc
+  // [ ] show-config.cc
+  // [ ] show-derivation.cc
+  // [ ] sigs.cc
+  // [ ] store.cc
+  // [ ] store-copy-log.cc
+  // [ ] store-delete.cc
+  // [ ] store-gc.cc
+  // [ ] store-repair.cc
+  // [ ] upgrade-nix.cc
+  // [ ] verify.cc
+  // [ ] why-depends.cc
+  
   class_<nix::ref<nix::Store>>(s, "store-ref");
 
   pkg.def(
