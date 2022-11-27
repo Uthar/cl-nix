@@ -15,5 +15,18 @@ To build, do the following steps:
    ninja -C build
    ```
 
-To use run `./build/boehmprecise/clasp` then execute `(nix:open-store "auto")`
-in the Clasp REPL.
+example
+=========
+
+``` lisp
+(defparameter store (nix:open-store "auto"))
+
+(nix:init-gc)
+
+(defparameter eval-state (nix:make-eval-state store))
+
+(defparameter python (nix:eval-expr "with import <nixpkgs> {}; python" eval-state "/"))
+
+(nix:coerce-to-path eval-state python)
+```
+
