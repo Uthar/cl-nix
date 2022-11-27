@@ -15,5 +15,5 @@ To build, do the following steps:
    ninja -C build
    ```
 
-To run the demos run `./build/boehmprecise/clasp` then execute `(nix:hellp)` in
-the Clasp REPL.
+To use run `./build/boehmprecise/clasp` then execute `(nix:open-store "auto")`
+in the Clasp REPL.

@@ -1,5 +1,6 @@
 #include <map>
 #include <string>
+#include <filesystem>
 
 #include <clasp/clasp.h>
 #include <nix/config.h>
@@ -7,9 +8,30 @@
 #include <nix/value.hh>
 #include <nix/store-api.hh>
 
+namespace translate {
+  template <>
+    struct from_object<std::string_view, std::true_type >
+  {
+    typedef std::string_view DeclareType;
+    DeclareType _v;
+    from_object( T_P o ) {
+      _v = std::string_view(string_get_std_string(o));
+    };
+  };
+}
+
 PACKAGE_USE("COMMON-LISP");
 PACKAGE_NICKNAME("NIX");
 NAMESPACE_PACKAGE_ASSOCIATION(cl_nix_ns, cl_nix_pkg, "CL-NIX");
+
+SYMBOL_EXPORT_SC_(cl_nix_pkg,STARhashTypeTranslatorSTAR);                             
+CLBIND_TRANSLATE_SYMBOL_TO_ENUM(nix::HashType, cl_nix_ns::_sym_STARhashTypeTranslatorSTAR);
+
+SYMBOL_EXPORT_SC_(cl_nix_pkg,STARbaseTranslatorSTAR);                             
+CLBIND_TRANSLATE_SYMBOL_TO_ENUM(nix::Base, cl_nix_ns::_sym_STARbaseTranslatorSTAR);
+
+SYMBOL_EXPORT_SC_(cl_nix_pkg,STARvalueTypeTranslatorSTAR);                             
+CLBIND_TRANSLATE_SYMBOL_TO_ENUM(nix::ValueType, cl_nix_ns::_sym_STARvalueTypeTranslatorSTAR);
 
 namespace cl_nix {
 CL_EXPOSE
@@ -190,7 +212,93 @@ void cl_nix_startup() {
   // [ ] upgrade-nix.cc
   // [ ] verify.cc
   // [ ] why-depends.cc
+
+  //// Derivations
+
+
+  enum_<nix::HashType>(s,cl_nix_ns::_sym_STARhashTypeTranslatorSTAR)
+    .value("md5",nix::htMD5)
+    .value("sha1",nix::htSHA1)
+    .value("sha256",nix::htSHA256)
+    .value("sha512",nix::htSHA512);
+
+  enum_<nix::Base>(s,cl_nix_ns::_sym_STARbaseTranslatorSTAR)
+    .value("base64",nix::Base64)
+    .value("base32",nix::Base32)
+    .value("base16",nix::Base16)
+    .value("sri",nix::SRI);
+
+  enum_<nix::ValueType>(s,cl_nix_ns::_sym_STARvalueTypeTranslatorSTAR)
+    .value("thunk",nix::nThunk)
+    .value("int",nix::nInt)
+    .value("float",nix::nFloat)
+    .value("bool",nix::nBool)
+    .value("string",nix::nString)
+    .value("path",nix::nPath)
+    .value("nix-null",nix::nNull)
+    .value("attrs",nix::nAttrs)
+    .value("nix-list",nix::nList)
+    .value("nix-function",nix::nFunction)
+    .value("external",nix::nExternal)
+    ;
+
+  class_<nix::StorePath>(s, "store-path")
+    .def("to-string",&nix::StorePath::to_string)
+    .def("name",&nix::StorePath::name)
+    .def("hashPart",&nix::StorePath::hashPart)
+    .def("derivation-p",&nix::StorePath::isDerivation);
+
+  class_<nix::Hash>(s, "hash")
+    .def("git-rev",&nix::Hash::gitRev)
+    .def("git-short-rev",&nix::Hash::gitShortRev)
+    .def("to-string",&nix::Hash::to_string);
+
+  pkg.def("hash-string",&nix::hashString);
+  pkg.def("hash-file",&nix::hashFile);
+
+  // pkg.def(
+  //   "make-store-path",
+  //   +[](const nix::Hash & hash, std::string_view name) {
+  //     return nix::StorePath(hash, name);
+  //   });
+
+  pkg.def(
+    "make-store-path",
+    +[](std::string_view baseName) {
+      return nix::StorePath(baseName);
+    });
+
+  // pkg.def(
+  //   "make-input-addressed-derivation-output",
+  //   +[](nix::StorePath path) {
+  //     nix::DerivationOutputInputAddressed output;
+  //     output.path = path;
+  //     return output;
+  //   });
+
+  // pkg.def(
+  //   "make-content-addressed-derivation-output",
+  //   +[](nix::StorePath path) {
+  //     nix::DerivationOutputInputAddressed output;
+  //     output.storePath = path;
+  //     return output;
+  //   });
+
+  // pkg.def(
+  //   "make-derivation",
+  //   +[](nix::DerivationOutputs outputs,
+  //       nix::StorePathSet inputSrcs,
+  //       std::string platform,
+  //       nix::Path builder,
+  //       nix::Strings args,
+  //       nix::StringPairs env,
+  //       std::string name) {
+  //     nix::Derivation drv;
+  //   });
   
+  
+  //// Store
+
   class_<nix::ref<nix::Store>>(s, "store-ref");
 
   pkg.def(
@@ -200,67 +308,78 @@ void cl_nix_startup() {
       return res;
     });
 
+  pkg.def(
+    "init",
+    +[](nix::ref<nix::Store> store) {
+      return store->init();
+    });
+
+  pkg.def(
+    "get-uri",
+    +[](nix::ref<nix::Store> store) {
+      return store->getUri();
+    });
+
+  pkg.def(
+    "add-text-to-store",
+    +[](nix::ref<nix::Store> store,
+        std::string_view name,
+        std::string_view s
+        // const nix::StorePathSet & references
+        ) {
+      return store->addTextToStore(name, s, {});
+    });
+
+  pkg.def(
+    "nar-from-path",
+    +[](nix::ref<nix::Store> store,
+        const nix::StorePath & path,
+        nix::Sink & sink) {
+      return store->narFromPath(path, sink);
+    });
+
+  pkg.def(
+    "optimise-store",
+    +[](nix::ref<nix::Store> store) {
+      return store->optimiseStore();
+    });
+
+  pkg.def(
+    "connect",
+    +[](nix::ref<nix::Store> store) {
+      return store->connect();
+    });
+
+  pkg.def(
+    "get-protocol",
+    +[](nix::ref<nix::Store> store) {
+      return store->getProtocol();
+    });
+
+  
+  /// Eval
+  
+  pkg.def("init-gc",&nix::initGC);
+
   class_<nix::Value>(s, "value")
     .def("lambda-p",&nix::Value::isLambda)
     .def("primop-p",&nix::Value::isPrimOp)
     .def("app-p",&nix::Value::isApp)
-    .def("trivial-p",&nix::Value::isTrivial);
-  
-  pkg.def("init-gc",&nix::initGC);
+    .def("trivial-p",&nix::Value::isTrivial)
+    .def("value-type",&nix::Value::type);
 
   pkg.def(
     "eval-expr",
-    +[](std::string e, nix::ref<nix::Store> store) {
+    +[](std::string e,
+        nix::ref<nix::Store> store,
+        std::string basePath = std::filesystem::current_path()) {
       auto searchPath = std::list<std::string>();
       auto state = nix::EvalState(searchPath, store);
-      auto expr = state.parseExprFromString(e, "/home/kasper/");
+      auto expr = state.parseExprFromString(e, basePath);
       nix::Value value;
       state.eval(expr, value);
       return value;
     });
 
-  // pkg.def("add-to-search-path",&nix::EvalState::addToSearchPath);
-  // pkg.def("get-search-path",&nix::EvalState::getSearchPath);
-  // pkg.def("allow-path", void(*)(const &nix::Path) &nix::EvalState::allowPath);
-  // pkg.def("allow-path*", void(*)(const &nix::StorePath) &nix::EvalState::allowPath);
-  // pkg.def("check-source-path",&nix::EvalState::checkSourcePath);  
-  // pkg.def("check-uri",&nix::EvalState::checkURI);  
-  // pkg.def("to-real-path",&nix::EvalState::toRealPath);
-  // pkg.def("parse-expr-from-afile", nix::Expr(*)(const &nix::Path) &nix::EvalState:parseExprFromFile);
-  // pkg.def("parse-expr-from-file*", nix::Expr(*)(const &nix::Path, &std::shared_ptr<nix::StaticEnv>)
-          // &nix::EvalState:parseExprFromFile);
-  // pkg.def("parse-expr-from-string", nix::Expr(*)(const &nix::Path) &nix::EvalState:parseExprFromString);
-  // pkg.def("parse-expr-from-string*", nix::Expr(*)(const &nix::Path, &std::shared_ptr<nix::StaticEnv>)
-          // &nix::EvalState:parseExprFromString);
-  // pkg.def("parse-stdin",&nix::EvalState::parseStdin);
-  // pkg.def("eval-file",&nix::EvalState::evalFile);
-  // pkg.def("cache-file",&nix::EvalState::cacheFile);
-  // pkg.def("reset-file-cache",&nix::EvalState::resetFileCache);
-  // pkg.def("find-file", nix::Path(*)(const std::string_view) &nix::EvalState:findFile);
-  // pkg.def("find-file*", nix::Path(*)(&nix::SearchPath, const std::string_view) &nix::EvalState:findFile);
-  // pkg.def("resolve-search-path-elem",&nix::EvalState::resolveSearchPathElem);
-  // pkg.def("eval",&nix::EvalState::eval);
-  // pkg.def("force-value",&nix::EvalState::forceValue);
-  // pkg.def("force-value-deep",&nix::EvalState::forceValueDeep);
-  // pkg.def("derivation-p",&nix::EvalState::isDerivation);
-  // pkg.def("try-attrs-to-string",&nix::EvalState::tryAttrsToString);
-  // pkg.def("coerce-to-string",&nix::EvalState::coerceToString);
-  // pkg.def("copy-path-to-store",&nix::EvalState::copyPathToStore);
-  // pkg.def("coerce-to-path",&nix::EvalState::coerceToPath);
-  // pkg.def("coerce-to-store-path",&nix::EvalState::coerceToStorePath);
-  // pkg.def("get-builtin",&nix::EvalState::getBuiltin);
-  // pkg.def("get-doc",&nix::EvalState::getDoc);
-  // pkg.def("values=",&nix::EvalState::eqValues);
-  // pkg.def("functor-p",&nix::EvalState::isFunctor);
-  // pkg.def("call-function", void(*)(&nix::Value, &nix::Value, const nix::PosIdx)
-          // &nix::EvalState:callFunction);
-  // pkg.def("auto-call-function",&nix::EvalState::autoCallFunction);
-  // pkg.def("print-stats",&nix::EvalState::printStats);
-
-  // pkg.def("show-type-value-type", std::string_view(*)(nix::ValueType) nix::showType);
-  // pkg.def("show-type-value", std::string(*)(&const nix::Value) nix::showType);
-  // pkg.def("decode-context",&nix::decodeContext);
-  // pkg.def("resolve-expr-path",&nix::resolveExprPath);
-
 }
-}; // namespace expr
+};
