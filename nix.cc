@@ -450,16 +450,42 @@ void cl_nix_startup() {
     .def("trivial-p",&nix::Value::isTrivial)
     .def("value-type",&nix::Value::type);
 
+  class_<nix::ref<nix::EvalState>>(s, "eval-state-ref")
+    // .def("derivation-p",&nix::EvalState::isDerivation)
+    // .def("print-stats",&nix::EvalState::printStats)
+    ;
+
+  class_<nix::Path>(s, "path");
+  class_<nix::StorePath>(s, "store-path");
+
+  pkg.def(
+    "coerce-to-path",
+    +[](nix::ref<nix::EvalState> state, nix::Value v) {
+      nix::PathSet context = {};
+      return state->coerceToPath({}, v, context);
+    });
+
+  // pkg.def(
+  //   "coerce-to-store-path",
+  //   +[](nix::EvalState state, nix::Value v) {
+  //     nix::PathSet context;
+  //     return state.coerceToStorePath({}, v, context);
+  //   });
+
+  pkg.def(
+    "make-eval-state",
+    +[](nix::ref<nix::Store> store) {
+      return nix::ref<nix::EvalState>(new nix::EvalState({}, store));
+    });
+  
   pkg.def(
     "eval-expr",
     +[](std::string e,
-        nix::ref<nix::Store> store,
+        nix::ref<nix::EvalState> state,
         std::string basePath = std::filesystem::current_path()) {
-      auto searchPath = std::list<std::string>();
-      auto state = nix::EvalState(searchPath, store);
-      auto expr = state.parseExprFromString(e, basePath);
+      auto expr = state->parseExprFromString(e, basePath);
       nix::Value value;
-      state.eval(expr, value);
+      state->eval(expr, value);
       return value;
     });
 
