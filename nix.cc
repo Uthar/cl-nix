@@ -375,6 +375,12 @@ void cl_nix_startup() {
       return nix::parseDerivation(*store, std::move(s), name);
     });  
 
+  pkg.def(
+    "unparse-derivation",
+    +[](nix::Derivation drv, nix::ref<nix::Store> store, bool maskOutputs) {
+      return drv.unparse(*store, maskOutputs);
+    });
+     
   /// Eval
   
   pkg.def("init-gc",&nix::initGC);
