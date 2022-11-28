@@ -35,15 +35,12 @@ example
 - Build a derivation
 
 ```lisp
+(defparameter store (nix:open-store "auto"))
 (nix:init-gc)
-
 (defparameter eval-state (nix:make-eval-state store))
-
-(defparameter foo (nix:make-derivation store "foo" "x86_64-linux" "/bin/sh"))
-
-(defparameter foo-path (nix:write-derivation foo store))
-
-(defparameter result (nix:build-derivation store foo-path foo))
-
-(nix:to-string result)
+(defparameter python (nix:eval-expr "with import <nixpkgs> {}; python310" eval-state "/"))
+(defparameter python-store-path (nix:coerce-to-store-path eval-state python))
+(defparameter python-path-info (nix:query-path-info store python-store-path))
+(defparameter python-deriver (nix:path-info-deriver python-path-info))
+(defparameter python-derivation (nix:derivation-from-path store python-deriver))
 ```
