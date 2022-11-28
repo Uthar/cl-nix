@@ -306,6 +306,24 @@ void cl_nix_startup() {
     .def("git-short-rev",&nix::Hash::gitShortRev)
     .def("to-string",&nix::Hash::to_string);
 
+  class_<nix::ref<const nix::ValidPathInfo>>(s, "valid-path-info");
+    // .def("fingerprint",&nix::ValidPathInfo::fingerprint)
+    // .def("sign",&nix::ValidPathInfo::sign)
+    // .def("content-addressed-p",&nix::ValidPathInfo::isContentAddressed)
+    // .def("signature-valid-p",&nix::ValidPathInfo::checkSignature);
+
+  pkg.def(
+    "query-path-info",
+    +[](nix::ref<nix::Store> store, nix::StorePath path) {
+      return store->queryPathInfo(path);
+    });
+
+  pkg.def(
+    "path-info-deriver",
+    +[](nix::ref<const nix::ValidPathInfo> info) {
+      return info->deriver.value_or(nix::StorePath::dummy);
+    });
+
   pkg.def("hash-string",&nix::hashString);
   pkg.def("hash-file",&nix::hashFile);
 
@@ -465,8 +483,20 @@ void cl_nix_startup() {
 
   pkg.def(
     "write-derivation",
-    +[](nix::Derivation drv, nix::ref<nix::Store> store) {
+    +[](nix::ref<nix::Store> store, nix::Derivation drv) {
       return nix::writeDerivation(*store, drv);
+    });
+
+  pkg.def(
+    "read-derivation",
+    +[](nix::ref<nix::Store> store, nix::StorePath path) {
+      return store->readDerivation(path);
+    });
+
+  pkg.def(
+    "derivation-from-path",
+    +[](nix::ref<nix::Store> store, nix::StorePath path) {
+      return store->derivationFromPath(path);
     });
 
   /// Eval
@@ -484,6 +514,35 @@ void cl_nix_startup() {
   class_<nix::Symbol>(s, "nix-symbol");
   class_<nix::SymbolTable>(s, "nix-symbol-table");
   class_<nix::Path>(s, "path");
+  // class_<nix::Attr>(s, "attr");
+  // class_<nix::Bindings>(s, "bindings");
+
+  // pkg.def(
+  //   "attr-name",
+  //   +[](nix::Attr attr) {
+  //     return attr.name;
+  //   });
+
+  // pkg.def(
+  //   "attr-value",
+  //   +[](nix::Attr attr) {
+  //     return attr.value;
+  //   });
+
+  //  pkg.def(
+  //   "value-string",
+  //   +[](nix::Value value) {
+  //     // TODO(kasper): What to do about string.context?
+  //     return value.string.s;
+  //   });
+
+  //   pkg.def(
+  //   "value-attrs",
+  //   +[](nix::Value value) {
+  //     // TODO(kasper): What to do about string.context?
+  //     return value.attrs;
+  //   });
+
   
   pkg.def(
     "coerce-to-path",
@@ -491,6 +550,20 @@ void cl_nix_startup() {
       nix::PathSet context = {};
       return state->coerceToPath({}, v, context);
     });
+
+  pkg.def(
+    "coerce-to-store-path",
+    +[](nix::ref<nix::EvalState> state, nix::Value v) {
+      nix::PathSet context = {};
+      return state->coerceToStorePath({}, v, context);
+    });
+
+  // pkg.def(
+  //   "attrs-ref",
+  //   +[](nix::Bindings attrs, std::string n) {
+  //     static nix::SymbolTable st;
+  //     return attrs.get(st.create(n));
+  //   });
 
   pkg.def(
     "make-eval-state",
