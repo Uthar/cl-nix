@@ -8,6 +8,7 @@
 #include <nix/value.hh>
 #include <nix/store-api.hh>
 #include <nix/derivations.hh>
+#include <nix/build-result.hh>
 
 map<std::string, std::string> foo () {
   auto map = std::map<std::string, std::string>();
@@ -354,6 +355,10 @@ void cl_nix_startup() {
 
   class_<nix::ref<nix::Store>>(s, "store");
   class_<nix::Derivation>(s, "derivation");
+  
+  class_<nix::BuildResult>(s, "build-result")
+    .def("to-string",&nix::BuildResult::toString)
+    .def("success-p",&nix::BuildResult::success);
 
   pkg.def(
     "open-store",
@@ -449,6 +454,14 @@ void cl_nix_startup() {
       
       return drv;
     });
+
+  pkg.def(
+    "build-derivation",
+    +[](nix::ref<nix::Store> store,
+        nix::StorePath drvPath,
+        nix::Derivation drv) {
+      return store->buildDerivation(drvPath, drv);
+    });  
 
   pkg.def(
     "write-derivation",
