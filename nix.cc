@@ -352,14 +352,13 @@ void cl_nix_startup() {
   
   //// Store
 
-  class_<nix::ref<nix::Store>>(s, "store-ref");
+  class_<nix::ref<nix::Store>>(s, "store");
   class_<nix::Derivation>(s, "derivation");
 
   pkg.def(
     "open-store",
     +[](std::string url) {
-      nix::ref<nix::Store> res = nix::openStore(url);
-      return res;
+      return nix::openStore(url);
     });
 
   pkg.def(
@@ -424,11 +423,30 @@ void cl_nix_startup() {
 
   pkg.def(
     "make-derivation",
-    +[](std::string name, std::string platform, nix::Path builder) {
+    +[](nix::ref<nix::Store> store,
+        std::string name,
+        std::string platform,
+        nix::Path builder) {
+      
       nix::Derivation drv;
       drv.name = name;
       drv.platform = platform;
       drv.builder = builder;
+      drv.outputs.insert_or_assign("out", nix::DerivationOutput::Deferred {});
+      drv.env["out"] = "";
+      
+      auto hashModulo = nix::hashDerivationModulo(*store, nix::Derivation(drv), true);
+      assert(hashModulo.kind == nix::DrvHash::Kind::Regular);
+      auto hash = nix::get(hashModulo.hashes, "out");
+      assert(hash);
+      auto outPath = store->makeOutputPath("out", *hash, name);
+      drv.env["out"] = store->printStorePath(outPath);
+      drv.outputs.insert_or_assign(
+        "out",
+        nix::DerivationOutputInputAddressed {
+          .path = std::move(outPath)
+        });
+      
       return drv;
     });
 
@@ -438,7 +456,6 @@ void cl_nix_startup() {
       return nix::writeDerivation(*store, drv);
     });
 
-     
   /// Eval
   
   pkg.def("init-gc",&nix::initGC);
@@ -450,27 +467,17 @@ void cl_nix_startup() {
     .def("trivial-p",&nix::Value::isTrivial)
     .def("value-type",&nix::Value::type);
 
-  class_<nix::ref<nix::EvalState>>(s, "eval-state-ref")
-    // .def("derivation-p",&nix::EvalState::isDerivation)
-    // .def("print-stats",&nix::EvalState::printStats)
-    ;
-
+  class_<nix::ref<nix::EvalState>>(s, "eval-state");
+  class_<nix::Symbol>(s, "nix-symbol");
+  class_<nix::SymbolTable>(s, "nix-symbol-table");
   class_<nix::Path>(s, "path");
-  class_<nix::StorePath>(s, "store-path");
-
+  
   pkg.def(
     "coerce-to-path",
     +[](nix::ref<nix::EvalState> state, nix::Value v) {
       nix::PathSet context = {};
       return state->coerceToPath({}, v, context);
     });
-
-  // pkg.def(
-  //   "coerce-to-store-path",
-  //   +[](nix::EvalState state, nix::Value v) {
-  //     nix::PathSet context;
-  //     return state.coerceToStorePath({}, v, context);
-  //   });
 
   pkg.def(
     "make-eval-state",
