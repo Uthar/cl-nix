@@ -66,3 +66,28 @@ COMMON-LISP-USER> (nix:unparse-derivation * store nil)
 "Derive([(\"out\",\"/nix/store/qwmnpbqwh7dqjjzfqg0qrwbph4wg2193-foo\",\"\",\"\")],[],[],\"x86_64-linux\",\"/bin/sh\",[],[(\"bar\",\"456\"),(\"foo\",\"123\"),(\"out\",\"/nix/store/qwmnpbqwh7dqjjzfqg0qrwbph4wg2193-foo\")])"
 
 ```
+
+``` common-lisp
+COMMON-LISP-USER> (load "test.lisp")
+
+T
+COMMON-LISP-USER> (nix:make-derivation store "foo" "x86_64-linux" "/bin/sh" (make-hash-table))
+
+#<wrapped-pointer :ptr 0xafe0eb0 @0x7f89d46630f8>
+COMMON-LISP-USER> (nix:unparse-derivation * store nil)
+
+"Derive([(\"out\",\"/nix/store/kn6k98czgiw4fq0d0a5j9nixpxdlr5hj-foo\",\"\",\"\")],[],[],\"x86_64-linux\",\"/bin/sh\",[],[(\"out\",\"/nix/store/kn6k98czgiw4fq0d0a5j9nixpxdlr5hj-foo\")])"
+COMMON-LISP-USER> (nix:write-derivation store **)
+
+#<wrapped-pointer :ptr 0xb06db10 @0x7f89d4687d28>
+COMMON-LISP-USER> 
+(nix:build-derivation store * ***)
+building '/nix/store/z8h0j4aylpi5x6r72phxis7l1nck13lw-foo.drv'...
+
+#<wrapped-pointer :ptr 0xb024c30 @0x7f89d4687a58>
+COMMON-LISP-USER> (nix:to-string *)
+
+"OutputRejected : builder for '/nix/store/z8h0j4aylpi5x6r72phxis7l1nck13lw-foo.drv' failed to produce output path for output 'out' at '/nix/store/z8h0j4aylpi5x6r72phxis7l1nck13lw-foo.drv.chroot/nix/store/kn6k98czgiw4fq0d0a5j9nixpxdlr5hj-foo'"
+COMMON-LISP-USER> 
+
+```
