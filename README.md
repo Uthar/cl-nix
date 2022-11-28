@@ -44,3 +44,25 @@ example
 (defparameter python-deriver (nix:path-info-deriver python-path-info))
 (defparameter python-derivation (nix:derivation-from-path store python-deriver))
 ```
+
+notes
+======
+
+```
+(defparameter env (make-hash-table :test 'equal))
+
+ENV
+COMMON-LISP-USER> (setf (gethash "foo" env) "123")
+
+"123"
+COMMON-LISP-USER> (setf (gethash "bar" env) "456")
+
+"456"
+COMMON-LISP-USER> (nix:make-derivation store "foo" "x86_64-linux" "/bin/sh" env)
+
+#<wrapped-pointer :ptr 0xbca7600 @0x7f2e884b3968>
+COMMON-LISP-USER> (nix:unparse-derivation * store nil)
+
+"Derive([(\"out\",\"/nix/store/qwmnpbqwh7dqjjzfqg0qrwbph4wg2193-foo\",\"\",\"\")],[],[],\"x86_64-linux\",\"/bin/sh\",[],[(\"bar\",\"456\"),(\"foo\",\"123\"),(\"out\",\"/nix/store/qwmnpbqwh7dqjjzfqg0qrwbph4wg2193-foo\")])"
+
+```
