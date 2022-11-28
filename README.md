@@ -18,6 +18,8 @@ To build, do the following steps:
 example
 =========
 
+- Get Python's `$out`
+
 ``` lisp
 (defparameter store (nix:open-store "auto"))
 
@@ -30,3 +32,18 @@ example
 (nix:coerce-to-path eval-state python)
 ```
 
+- Build a derivation
+
+```lisp
+(nix:init-gc)
+
+(defparameter eval-state (nix:make-eval-state store))
+
+(defparameter foo (nix:make-derivation store "foo" "x86_64-linux" "/bin/sh"))
+
+(defparameter foo-path (nix:write-derivation foo store))
+
+(defparameter result (nix:build-derivation store foo-path foo))
+
+(nix:to-string result)
+```
