@@ -68,6 +68,39 @@ namespace translate {
       });
     };
   };
+  // list
+  template <typename T>
+    struct to_object< std::list<T>, translate::dont_adopt_pointer >
+  {
+    typedef std::list<T> & DeclareType;
+    static core::T_sp convert( DeclareType & v )
+    {
+      auto nil = core::lisp_intern("NIL","COMMON-LISP");
+      if (v.empty())
+        return nil;
+      core::Cons_sp oi = core::Cons_O::create(v[0],nil);
+      v.pop_front();
+      for (auto & value : v)
+        oi = core::Cons_O::create(value,oi);
+      return ( oi );
+    }
+  };
+  template <typename T>
+    struct from_object<std::list<T>, std::true_type >
+  {
+    typedef std::list<T> DeclareType;
+    DeclareType _v;
+    from_object( T_P obj ) {
+      _v = std::list<T>();
+      if (obj.nilp()) {
+        this->_v.clear();
+      } else if (core::List_sp list = obj.asOrNull<core::List_V>()) {
+        for (auto c : list)
+          if (oCar(c).notnilp())
+            this->_v.push_back(from_object<T>(oCar(c))._v);
+      }
+    };
+  };
 }
 
 PACKAGE_USE("COMMON-LISP");
@@ -450,6 +483,7 @@ void cl_nix_startup() {
         std::string name,
         std::string platform,
         nix::Path builder,
+        nix::Strings args,
         nix::StringPairs env) {
       
       nix::Derivation drv;
@@ -457,6 +491,7 @@ void cl_nix_startup() {
       drv.platform = platform;
       drv.builder = builder;
       drv.outputs.insert_or_assign("out", nix::DerivationOutput::Deferred {});
+      drv.args = args;
       drv.env = env;
       drv.env["out"] = "";
       
