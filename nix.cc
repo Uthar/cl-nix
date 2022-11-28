@@ -449,13 +449,15 @@ void cl_nix_startup() {
     +[](nix::ref<nix::Store> store,
         std::string name,
         std::string platform,
-        nix::Path builder) {
+        nix::Path builder,
+        nix::StringPairs env) {
       
       nix::Derivation drv;
       drv.name = name;
       drv.platform = platform;
       drv.builder = builder;
       drv.outputs.insert_or_assign("out", nix::DerivationOutput::Deferred {});
+      drv.env = env;
       drv.env["out"] = "";
       
       auto hashModulo = nix::hashDerivationModulo(*store, nix::Derivation(drv), true);
