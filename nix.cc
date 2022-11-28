@@ -50,9 +50,9 @@ namespace translate {
     {
       auto equal = core::lisp_intern("EQUAL","COMMON-LISP");
       core::HashTable_sp oi = core::HashTable_O::create(equal);
-      // for (auto & [key, value] : v)
-        // oi->hash_table_setf_gethash(to_object<K>::convert(key),
-                                    // to_object<V>::convert(value));
+      for (auto & [key, value] : v)
+        oi->hash_table_setf_gethash(to_object<const K>::convert(key),
+                                    to_object<const V>::convert(value));
       return ( oi );
     }
   };
