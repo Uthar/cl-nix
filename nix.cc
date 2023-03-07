@@ -9,6 +9,7 @@
 #include <nix/store-api.hh>
 #include <nix/derivations.hh>
 #include <nix/build-result.hh>
+#include <nix/shared.hh>
 
 map<std::string, std::string> foo () {
   auto map = std::map<std::string, std::string>();
@@ -539,6 +540,7 @@ void cl_nix_startup() {
   /// Eval
   
   pkg.def("init-gc",&nix::initGC);
+  pkg.def("init-nix",&nix::initNix);
 
   class_<nix::Value>(s, "value")
     .def("lambda-p",&nix::Value::isLambda)
@@ -585,14 +587,16 @@ void cl_nix_startup() {
     "coerce-to-path",
     +[](nix::ref<nix::EvalState> state, nix::Value v) {
       nix::PathSet context = {};
-      return state->coerceToPath({}, v, context);
+      std::string_view errctx;
+      return state->coerceToPath({}, v, context, errctx);
     });
 
   pkg.def(
     "coerce-to-store-path",
     +[](nix::ref<nix::EvalState> state, nix::Value v) {
       nix::PathSet context = {};
-      return state->coerceToStorePath({}, v, context);
+      std::string_view errctx;
+      return state->coerceToStorePath({}, v, context, errctx);
     });
 
   // pkg.def(
