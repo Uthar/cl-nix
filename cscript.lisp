@@ -9,5 +9,6 @@
 
 (k:library "nix-expr" :required t)
 (k:library "nix-store" :required t)
+(k:library "nix-main" :required t)
 
 (k:systems :nix)
