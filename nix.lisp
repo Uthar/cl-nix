@@ -1,5 +1,9 @@
 (in-package nix)
 
+#|
+
+(init-nix)
+
 (init-gc)
 
 (defparameter *store* (open-store "auto"))
@@ -37,3 +41,4 @@
 (success-p build-result) ;; T
 (to-string build-result) ;; Built
    
+|#
